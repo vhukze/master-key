@@ -23,6 +23,35 @@
 >支持的对称加密方式：SM4，AES，DES，DESede
 >支持的非对称加密方式：RSA，SM2
 ---
+**在配置类中注册参数解析器**
+```
+import com.vhukze.masterkey.master.DecodeResolver;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+/**
+ * webmvc配置
+ */
+@Configuration
+public class MyWebConfig implements WebMvcConfigurer {
+
+    @Resource
+    private DecodeResolver decodeResolver;
+
+    /**
+     * 注册自定义HandlerMethodArgumentResolver  接口参数解密
+     */
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(decodeResolver);
+    }
+}
+```
+---
 **对称加密配置示例(配置到application.yml中)**
 ```
 master-key:
