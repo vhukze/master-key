@@ -52,7 +52,15 @@ master-key:
 ||OFB|SSL3Padding|
 ||PCBC||
 
-##### 3.  xxxx
+##### 3.  注意事项
+**使用SM4加密算法时，需要引入国密加密的依赖 如下**
+```
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+            <version>1.69</version>
+        </dependency>
+```
 
 #### 使用说明
 
