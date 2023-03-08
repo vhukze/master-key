@@ -1,15 +1,15 @@
 # master-key
 
-#### 介绍
+## 介绍
 用来实现接口参数解密的工具，只需引入依赖，在配置文件写明加密的配置，在接口上使用指定注解即可实现该接口的参数解密。并支持使用validation模块的注解进行参数校验
 
-#### 软件架构
+## 软件架构
 就是一个简单的springboot starter 启动器，功能中用到的工具类是用的hutool
 
 
-#### 安装教程
+## 安装教程
 
-##### 1.  依赖
+### 1.  依赖
 **目前还没有发布到中央仓库，只能把代码拉到本地打包使用**
 **使用时的依赖**
 ```
@@ -19,7 +19,7 @@
             <version>{{last-version}}</version>
         </dependency>
 ```
-##### 2.  配置
+### 2.  配置
 >支持的对称加密方式：SM4，AES，DES，DESede
 >支持的非对称加密方式：RSA，SM2
 ---
@@ -81,7 +81,7 @@ master-key:
 ||OFB|SSL3Padding|
 ||PCBC||
 
-##### 3.  注意事项
+### 3.  注意事项
 **使用SM4加密算法时，需要引入国密加密的依赖 如下**
 ```
         <dependency>
@@ -91,13 +91,13 @@ master-key:
         </dependency>
 ```
 
-#### 使用说明
+## 使用说明
 
 1.  xxxx
 2.  xxxx
 3.  xxxx
 
-#### 参与贡献
+## 参与贡献
 
 1.  Fork 本仓库
 2.  新建 Feat_xxx 分支
@@ -105,7 +105,7 @@ master-key:
 4.  新建 Pull Request
 
 
-#### 特技
+## 特技
 
 1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
 2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
