@@ -16,7 +16,7 @@
 >支持的非对称加密方式：RSA，SM2
 ---
 对称加密配置示例
-(```)
+```
 master-key:
   # 加密方式
   encode: SM4
@@ -30,19 +30,19 @@ master-key:
   key: 1234123412ABCDEF
   # 盐值
   salt: ABCDEF1234123412
-(```)
+```
 ---
 **对称加密配置项的可配置值**
 加密方式（encode）|加密模式（mode）|填充方式（padding）
 --|:--:|--:
-SM4|NONE|NoPadding
-AES|CBC|ZeroPadding
-DES|CFB|ISO10126Padding
-DESede|CTR|OAEPPadding
-|CTS|PKCS1Padding
-|ECB|PKCS5Padding
-|OFB|SSL3Padding
-|PCBC|
+|SM4|NONE|NoPadding|
+|AES|CBC|ZeroPadding|
+|DES|CFB|ISO10126Padding|
+|DESede|CTR|OAEPPadding|
+||CTS|PKCS1Padding|
+||ECB|PKCS5Padding|
+||OFB|SSL3Padding|
+||PCBC||
 
 ##### 3.  xxxx
 
