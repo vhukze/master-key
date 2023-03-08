@@ -10,7 +10,15 @@
 #### 安装教程
 
 ##### 1.  依赖
-
+**目前还没有发布到中央仓库，只能把代码拉到本地打包使用**
+**使用时的依赖**
+```
+        <dependency>
+            <groupId>com.vhukze</groupId>
+            <artifactId>master-key-spring-boot-starter</artifactId>
+            <version>{{last-version}}</version>
+        </dependency>
+```
 ##### 2.  配置
 >支持的对称加密方式：SM4，AES，DES，DESede
 >支持的非对称加密方式：RSA，SM2
