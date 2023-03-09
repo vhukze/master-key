@@ -57,7 +57,7 @@ public class MyWebConfig implements WebMvcConfigurer {
 master-key:
   # 加密方式
   encode: SM4
-  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，之传递加密后的字符串
+  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，只传递加密后的字符串
   json-key: str
   # 加密模式
   mode: CBC
@@ -86,7 +86,7 @@ master-key:
 master-key:
   # 加密方式
   encode: SM2
-  # 解密前json的key
+  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，只传递加密后的字符串
   json-key:
   # 公钥
   public_key: MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEDRhJQbkA5SKceAaJmtdOBiRzCqwei4WRzAkBrZ9SkBZhZ1zC4nteRLVi754MsI/8vsiNK2lV518E8RaNw+mnLA==
