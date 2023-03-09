@@ -4,7 +4,7 @@
 用来实现接口参数解密的工具，只需引入依赖，在配置文件写明加密的配置，在接口上使用指定注解即可实现该接口的参数解密。并支持使用validation模块的注解进行参数校验，支持分组校验功能
 
 ## 软件架构
-使用java8，springboot2.x.x,一个简单的springboot starter 启动器，功能中用到的工具类是hutool
+使用java8，springboot2.x.x，一个简单的springboot starter 启动器，功能中用到的工具类是hutool
 
 
 ## 安装教程
