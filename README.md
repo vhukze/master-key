@@ -81,6 +81,19 @@ master-key:
 ||OFB|SSL3Padding|
 ||PCBC||
 
+**非对称加密配置示例**
+```
+master-key:
+  # 加密方式
+  encode: SM2
+  # 解密前json的key
+  json-key:
+  # 公钥
+  public_key: MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEDRhJQbkA5SKceAaJmtdOBiRzCqwei4WRzAkBrZ9SkBZhZ1zC4nteRLVi754MsI/8vsiNK2lV518E8RaNw+mnLA==
+  # 私钥
+  private_key: MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQ
+```
+
 ### 3.  注意事项
 **使用SM4和SM2国密加密算法时，需要引入国密加密的依赖 如下**
 ```
