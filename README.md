@@ -92,7 +92,9 @@ master-key:
 ```
 
 ## 使用说明
->首先前端把待传递的json参数使用配置的加密方式加密模式等进行加密，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
+>支持自定义实体类、基础数据类型及其包装类、集合类型、map类型
+
+**例如，自定义实体类方式：首先前端把待传递的json参数使用配置的加密方式加密模式等进行加密，加密前参数格式跟正常请求接口时相同，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca**
 
 **接口用来接收参数的实体类：**
 ```
@@ -127,7 +129,35 @@ public class Stock {
 
 **注意，不是表单传参，Content-Type为application/text**
 ---
-### 3.  xxxx
+### 3.  支持validation模块校验参数，支持分组校验功能
+例如：
+```
+@Data
+public class Stock {
+    @Max(3)
+    @NotNull(groups = Edit.class)
+    private Integer id;
+    @NotBlank(groups = {Add.class, Edit.class})
+    private String name;
+    @Min(3)
+    private Integer count;
+    
+    public interface Add {
+
+    }
+
+    public interface Edit {
+
+    }
+}
+```
+```
+@ParamsDecode
+@PostMapping("decode")
+public String decode(@Validated(value = Add.class) Stock stock) {
+    return "";
+}
+```
 
 ## 参与贡献
 
