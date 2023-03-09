@@ -57,7 +57,7 @@ public class MyWebConfig implements WebMvcConfigurer {
 master-key:
   # 加密方式
   encode: SM4
-  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，之传递加密后的字符串
+  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，只传递加密后的字符串
   json-key: str
   # 加密模式
   mode: CBC
@@ -80,6 +80,19 @@ master-key:
 ||ECB|PKCS5Padding|
 ||OFB|SSL3Padding|
 ||PCBC||
+
+**非对称加密配置示例**
+```
+master-key:
+  # 加密方式
+  encode: SM2
+  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，只传递加密后的字符串
+  json-key:
+  # 公钥
+  public-key: MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEDRhJQbkA5SKceAaJmtdOBiRzCqwei4WRzAkBrZ9SkBZhZ1zC4nteRLVi754MsI/8vsiNK2lV518E8RaNw+mnLA==
+  # 私钥
+  private-key: MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQ
+```
 
 ### 3.  注意事项
 **使用SM4和SM2国密加密算法时，需要引入国密加密的依赖 如下**
