@@ -122,7 +122,9 @@ public class Stock {
 ### 2. text格式传参
 
 **注意，不配置json-key即为使用text格式传参**
+
 参数直接就是加密后的字符串，即c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
+
 **注意，不是表单传参，Content-Type为application/text**
 ---
 ### 3.  xxxx
