@@ -183,6 +183,14 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     }
 
     private AbstractAsymmetricCrypto<?> getAsymmetry() {
+
+        if (StrUtil.isBlank(config.getPublicKey())) {
+            throw new KeyException(ExEnum.E08);
+        }
+        if (StrUtil.isBlank(config.getPrivateKey())) {
+            throw new KeyException(ExEnum.E09);
+        }
+
         switch (config.getEncode().toUpperCase(Locale.ROOT)) {
             case "SM2":
                 return new SM2(config.getPrivateKey(), config.getPublicKey());
