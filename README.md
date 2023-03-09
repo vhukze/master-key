@@ -82,7 +82,7 @@ master-key:
 ||PCBC||
 
 ### 3.  注意事项
-**使用SM4加密算法时，需要引入国密加密的依赖 如下**
+**使用SM4和SM2国密加密算法时，需要引入国密加密的依赖 如下**
 ```
         <dependency>
             <groupId>org.bouncycastle</groupId>
