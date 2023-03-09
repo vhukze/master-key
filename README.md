@@ -93,6 +93,7 @@ master-key:
 
 ## 使用说明
 >首先把待传递的json参数加密，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
+
 **接口用来接收参数的实体类：**
 ```
 @Data
@@ -101,7 +102,7 @@ public class Stock {
     private Integer count;
 }
 ```
-###1.  json格式传参
+### 1.  json格式传参
 **接口使用@ParamsDecode注解，标明此接口需要参数解密，如下**
 ```
     @ParamsDecode
@@ -117,9 +118,10 @@ public class Stock {
 }
 ```
 **接下来使用构建好的json字符串作为参数请求接口即可**
-
-###2.  xxxx
-###3.  xxxx
+---
+### 2.  xxxx
+---
+### 3.  xxxx
 
 ## 参与贡献
 
