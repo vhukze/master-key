@@ -26,7 +26,7 @@ public class DecodeAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public DecodeResolver emailService() {
+    public DecodeResolver decodeResolver() {
         DecodeResolver decodeResolver = new DecodeResolver();
         decodeResolver.setConfig(config);
         return decodeResolver;
