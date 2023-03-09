@@ -92,7 +92,7 @@ master-key:
 ```
 
 ## 使用说明
->首先把待传递的json参数加密，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
+>首先前端把待传递的json参数使用配置的加密方式加密模式等进行加密，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
 
 **接口用来接收参数的实体类：**
 ```
@@ -102,7 +102,6 @@ public class Stock {
     private Integer count;
 }
 ```
-### 1.  json格式传参
 **接口使用@ParamsDecode注解，标明此接口需要参数解密，如下**
 ```
     @ParamsDecode
@@ -111,7 +110,8 @@ public class Stock {
         return "";
     }
 ```
-然后需要在配置文件配置好json-key，并使用配置的json-key构建json字符串，比如配置的json-key为str，json字符串如下
+### 1.  json格式传参
+在配置文件配置好json-key，并使用配置的json-key构建json字符串，比如配置的json-key为str，json字符串如下
 ```
 {
     "str":"c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca"
@@ -119,7 +119,11 @@ public class Stock {
 ```
 **接下来使用构建好的json字符串作为参数请求接口即可**
 ---
-### 2.  xxxx
+### 2. text格式传参
+
+**注意，不配置json-key即为使用text格式传参**
+参数直接就是加密后的字符串，即c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
+**注意，不是表单传参，Content-Type为application/text**
 ---
 ### 3.  xxxx
 
