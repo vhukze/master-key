@@ -89,9 +89,9 @@ master-key:
   # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，只传递加密后的字符串
   json-key:
   # 公钥
-  public_key: MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEDRhJQbkA5SKceAaJmtdOBiRzCqwei4WRzAkBrZ9SkBZhZ1zC4nteRLVi754MsI/8vsiNK2lV518E8RaNw+mnLA==
+  public-key: MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEDRhJQbkA5SKceAaJmtdOBiRzCqwei4WRzAkBrZ9SkBZhZ1zC4nteRLVi754MsI/8vsiNK2lV518E8RaNw+mnLA==
   # 私钥
-  private_key: MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQ
+  private-key: MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQ
 ```
 
 ### 3.  注意事项
