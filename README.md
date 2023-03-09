@@ -1,10 +1,10 @@
 # master-key
 
 ## 介绍
-用来实现接口参数解密的工具，只需引入依赖，在配置文件写明加密的配置，在接口上使用指定注解即可实现该接口的参数解密。并支持使用validation模块的注解进行参数校验
+用来实现接口参数解密的工具，只需引入依赖，在配置文件写明加密的配置，在接口上使用指定注解即可实现该接口的参数解密。并支持使用validation模块的注解进行参数校验，支持分组校验功能
 
 ## 软件架构
-就是一个简单的springboot starter 启动器，功能中用到的工具类是用的hutool
+使用java8，springboot2.x.x,一个简单的springboot starter 启动器，功能中用到的工具类是hutool
 
 
 ## 安装教程
@@ -57,8 +57,8 @@ public class MyWebConfig implements WebMvcConfigurer {
 master-key:
   # 加密方式
   encode: SM4
-  # 解密前json的key 默认str
-  json-key: vvv
+  # 使用json格式参数时，解密之前json的key 不配置此参数则代表使用text格式参数，之传递加密后的字符串
+  json-key: str
   # 加密模式
   mode: CBC
   # 填充方式
@@ -92,10 +92,34 @@ master-key:
 ```
 
 ## 使用说明
+>首先把待传递的json参数加密，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca
+**接口用来接收参数的实体类：**
+```
+@Data
+public class Stock {
+    private Integer id;
+    private Integer count;
+}
+```
+###1.  json格式传参
+**接口使用@ParamsDecode注解，标明此接口需要参数解密，如下**
+```
+    @ParamsDecode
+    @PostMapping("decode")
+    public String decode(Stock stock){
+        return "";
+    }
+```
+然后需要在配置文件配置好json-key，并使用配置的json-key构建json字符串，比如配置的json-key为str，json字符串如下
+```
+{
+    "str":"c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca"
+}
+```
+**接下来使用构建好的json字符串作为参数请求接口即可**
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+###2.  xxxx
+###3.  xxxx
 
 ## 参与贡献
 
