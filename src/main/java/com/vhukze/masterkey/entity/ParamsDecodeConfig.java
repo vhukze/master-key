@@ -16,7 +16,7 @@ public class ParamsDecodeConfig {
     /**
      * 解密前的json键值对的key名称配置，默认为str
      */
-    private String jsonKey = "str";
+    private String jsonKey;
 
     /**
      * 使用的加密方式
@@ -39,7 +39,17 @@ public class ParamsDecodeConfig {
     private String salt;
 
     /**
-     * 使用的秘钥 （对称加密配置秘钥，非对称加密配置私钥）
+     * 使用的秘钥
      */
     private String key;
+
+    /**
+     * 非对称加密使用的公钥
+     */
+    private String publicKey;
+
+    /**
+     * 非对称加密使用的私钥
+     */
+    private String privateKey;
 }

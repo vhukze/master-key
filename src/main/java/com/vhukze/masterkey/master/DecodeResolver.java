@@ -7,6 +7,8 @@ import cn.hutool.crypto.Mode;
 import cn.hutool.crypto.Padding;
 import cn.hutool.crypto.asymmetric.AbstractAsymmetricCrypto;
 import cn.hutool.crypto.asymmetric.KeyType;
+import cn.hutool.crypto.asymmetric.RSA;
+import cn.hutool.crypto.asymmetric.SM2;
 import cn.hutool.crypto.symmetric.*;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
@@ -82,39 +84,9 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
             this.resetConfig(paramsDecode.value());
         }
 
-        // 获取解密前的加密JSON中的key
+        // 获取解密前的加密JSON中的key，如果配置了就使用json键值对解析，没有配置就是单独的加密字符串
         if (StrUtil.isNotBlank(config.getJsonKey())) {
             jsonKey = config.getJsonKey();
-        }
-
-        // 获取解密秘钥
-        String key = config.getKey();
-        if (StrUtil.isBlank(key)) {
-            throw new KeyException(ExEnum.E02);
-        }
-
-        // 获取该加密方式的加密模式
-        String mode = config.getMode();
-        Mode modeEnum;
-        if (StrUtil.isBlank(mode)) {
-            modeEnum = Mode.NONE;
-        } else {
-            modeEnum = EnumUtil.getEnumMap(Mode.class).get(mode);
-            if (modeEnum == null) {
-                throw new KeyException(ExEnum.E05);
-            }
-        }
-
-        // 获取填充方式
-        String padding = config.getPadding();
-        Padding paddingEnum;
-        if (StrUtil.isBlank(padding)) {
-            paddingEnum = Padding.NoPadding;
-        } else {
-            paddingEnum = EnumUtil.getEnumMap(Padding.class).get(padding);
-            if (paddingEnum == null) {
-                throw new KeyException(ExEnum.E04);
-            }
         }
 
         if (StrUtil.isBlank(config.getEncode())) {
@@ -122,15 +94,14 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
         }
 
         SymmetricCrypto symmetric = null;
-        AbstractAsymmetricCrypto asymmetric = null;
+        AbstractAsymmetricCrypto<?> asymmetric = null;
         // 对称加密
         if (symmetryList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
-            symmetric = this.getSymmetry(modeEnum, paddingEnum, key, config.getSalt());
+            symmetric = this.getSymmetry();
         }
         // 非对称加密
         else if (asymmetricList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
-            // TODO
-//            asymmetric = this.getAsymmetry();
+            asymmetric = this.getAsymmetry();
         } else {
             throw new KeyException(ExEnum.E03);
         }
@@ -142,8 +113,22 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
         Class<?> parameterType = parameter.getParameterType();
 
         //获取加密的请求数据并解密
+        Object beforParam;
         String afterParam = null;
-        Object beforParam = JSONUtil.parseObj(postStr, true).get(jsonKey);
+        if (StrUtil.isNotBlank(config.getJsonKey())) {
+            // 配置了json-key，但参数为text加密字符串
+            if (!JSONUtil.isJson(postStr)) {
+                throw new KeyException(ExEnum.E07);
+            }
+            beforParam = JSONUtil.parseObj(postStr, true).get(jsonKey);
+        } else {
+            // 参数为json格式，配置文件未配置json-key
+            if (JSONUtil.isJson(postStr)) {
+                throw new KeyException(ExEnum.E06);
+            }
+            beforParam = postStr;
+        }
+
         if (beforParam != null) {
             if (StrUtil.isBlank(beforParam.toString())) {
                 afterParam = "";
@@ -197,6 +182,17 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
 
     }
 
+    private AbstractAsymmetricCrypto<?> getAsymmetry() {
+        switch (config.getEncode().toUpperCase(Locale.ROOT)) {
+            case "SM2":
+                return new SM2(config.getPrivateKey(), config.getPublicKey());
+            case "RSA":
+                return new RSA(config.getPrivateKey(), config.getPublicKey());
+            default:
+                return null;
+        }
+    }
+
     /**
      * 重新获取指定的配置 TODO
      *
@@ -209,16 +205,47 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     /**
      * 获取对称加密对象
      */
-    private SymmetricCrypto getSymmetry(Mode mode, Padding padding, String key, String salt) {
+    private SymmetricCrypto getSymmetry() {
+
+        // 获取解密秘钥
+        String key = config.getKey();
+        if (StrUtil.isBlank(key)) {
+            throw new KeyException(ExEnum.E02);
+        }
+
+        // 获取该加密方式的加密模式
+        String mode = config.getMode();
+        Mode modeEnum;
+        if (StrUtil.isBlank(mode)) {
+            modeEnum = Mode.NONE;
+        } else {
+            modeEnum = EnumUtil.getEnumMap(Mode.class).get(mode);
+            if (modeEnum == null) {
+                throw new KeyException(ExEnum.E05);
+            }
+        }
+
+        // 获取填充方式
+        String padding = config.getPadding();
+        Padding paddingEnum;
+        if (StrUtil.isBlank(padding)) {
+            paddingEnum = Padding.NoPadding;
+        } else {
+            paddingEnum = EnumUtil.getEnumMap(Padding.class).get(padding);
+            if (paddingEnum == null) {
+                throw new KeyException(ExEnum.E04);
+            }
+        }
+
         switch (config.getEncode().toUpperCase(Locale.ROOT)) {
             case "AES":
-                return new AES(mode, padding, key.getBytes(), salt.getBytes());
+                return new AES(modeEnum, paddingEnum, key.getBytes(), config.getSalt().getBytes());
             case "SM4":
-                return new SM4(mode, padding, key.getBytes(), salt.getBytes());
+                return new SM4(modeEnum, paddingEnum, key.getBytes(), config.getSalt().getBytes());
             case "DES":
-                return new DES(mode, padding, key.getBytes(), salt.getBytes());
+                return new DES(modeEnum, paddingEnum, key.getBytes(), config.getSalt().getBytes());
             case "DESEDE":
-                return new DESede(mode, padding, key.getBytes(), salt.getBytes());
+                return new DESede(modeEnum, paddingEnum, key.getBytes(), config.getSalt().getBytes());
             default:
                 return null;
         }

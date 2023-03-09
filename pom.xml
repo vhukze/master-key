@@ -64,6 +64,14 @@
             <optional>true</optional>
         </dependency>
 
+        <!--    国密加密    -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+            <version>1.69</version>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
