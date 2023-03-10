@@ -36,7 +36,7 @@ import java.util.List;
  * webmvc配置
  */
 @Configuration
-public class MyWebConfig implements WebMvcConfigurer {
+public class MasterKeyConfig implements WebMvcConfigurer {
 
     @Resource
     private DecodeResolver decodeResolver;
@@ -104,7 +104,7 @@ master-key:
 ```
 
 ## 使用说明
->支持自定义实体类、基础数据类型及其包装类、集合类型、map类型。**加密前参数格式跟正常请求接口时相同**
+>支持自定义实体类、基础数据类型及其包装类、集合类型。**加密前参数格式跟正常请求接口时相同**
 
 **例如，自定义实体类方式：首先前端把待传递的json参数使用配置的加密方式加密模式等进行加密，例：加密前：{"id":3,"count":4}，加密后：c7dc378bf0c4da001466818765813a506b1a6b37e960b7ca**
 
