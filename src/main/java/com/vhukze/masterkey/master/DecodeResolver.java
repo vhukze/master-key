@@ -31,16 +31,13 @@ import javax.validation.constraints.*;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 参数解析器
  *
  * @author vhukze
- * @date 2023/3/8 12:10
+ * date 2023/3/8 12:10
  */
 @Log4j2
 public class DecodeResolver implements HandlerMethodArgumentResolver {
@@ -48,7 +45,7 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     /**
      * 解密前的加密JSON中的key
      */
-    private static String jsonKey = "str";
+    private static String jsonKey;
 
     private ParamsDecodeConfig config;
 

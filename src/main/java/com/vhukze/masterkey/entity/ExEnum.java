@@ -6,7 +6,7 @@ import lombok.Getter;
  * 异常枚举
  *
  * @author vhukze
- * @date 2023/3/8 - 12:30
+ * date 2023/3/8 - 12:30
  */
 @Getter
 public enum ExEnum {

@@ -14,7 +14,7 @@ import javax.annotation.Resource;
  * 自动配置类
  *
  * @author vhukze
- * @date 2023/3/8 - 16:04
+ * date 2023/3/8 - 16:04
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({DecodeResolver.class})

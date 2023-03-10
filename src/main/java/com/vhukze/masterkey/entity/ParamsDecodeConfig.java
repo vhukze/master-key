@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 /**
  * 参数解析配置实体
  * @author vhukze
- * @date 2023/3/8 - 12:13
+ * date 2023/3/8 - 12:13
  */
 @Data
 @Component
