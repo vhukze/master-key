@@ -36,7 +36,7 @@ import java.util.List;
  * webmvc配置
  */
 @Configuration
-public class MyWebConfig implements WebMvcConfigurer {
+public class MasterKeyConfig implements WebMvcConfigurer {
 
     @Resource
     private DecodeResolver decodeResolver;
