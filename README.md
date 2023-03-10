@@ -10,13 +10,12 @@
 ## 安装教程
 
 ### 1.  依赖
-**目前还没有发布到中央仓库，只能把代码拉到本地打包使用**
-**使用时的依赖**
+**当前最新版本为1.0**
 ```
         <dependency>
-            <groupId>com.vhukze</groupId>
+            <groupId>io.github.vhukze</groupId>
             <artifactId>master-key-spring-boot-starter</artifactId>
-            <version>{{last-version}}</version>
+            <version>目前最新版本</version>
         </dependency>
 ```
 ### 2.  配置
