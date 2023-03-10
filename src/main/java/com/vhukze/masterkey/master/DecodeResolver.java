@@ -281,15 +281,22 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
 
             if (annotation instanceof Max) {
                 Max max = (Max) annotation;
-                if (value != null && Convert.toInt(value) > max.value()) {
+                if (value != null && Convert.toLong(value) > max.value()) {
                     throw new ConstraintViolationException("参数值太大", null);
                 }
             }
 
             if (annotation instanceof Min) {
                 Min min = (Min) annotation;
-                if (value != null && Convert.toInt(value) < min.value()) {
+                if (value != null && Convert.toLong(value) < min.value()) {
                     throw new ConstraintViolationException("参数值太小", null);
+                }
+            }
+
+            if (annotation instanceof Pattern) {
+                Pattern pattern = (Pattern) annotation;
+                if (value != null && !ReUtil.isMatch(pattern.regexp(), value.toString())) {
+                    throw new ConstraintViolationException("参数值正则校验失败", null);
                 }
             }
 

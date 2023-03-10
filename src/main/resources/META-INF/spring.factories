@@ -1,3 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.vhukze.masterkey.config.DecodeAutoConfiguration
+  com.vhukze.masterkey.config.DecodeAutoConfiguration,\
+  com.vhukze.masterkey.config.MapDecodeAutoConfiguration
 
