@@ -10,7 +10,7 @@
 ## 安装教程
 
 ### 1.  依赖
-**当前最新版本为1.0**
+**当前最新版本为1.1**
 ```
         <dependency>
             <groupId>io.github.vhukze</groupId>
