@@ -13,11 +13,14 @@ import cn.hutool.crypto.symmetric.*;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.vhukze.masterkey.abs.MkDecodeInterface;
+import com.vhukze.masterkey.anno.IgnoreDecode;
 import com.vhukze.masterkey.anno.ParamsDecode;
 import com.vhukze.masterkey.entity.ParamsDecodeConfig;
 import com.vhukze.masterkey.entity.ExEnum;
 import com.vhukze.masterkey.exception.KeyException;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -25,6 +28,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 import javax.validation.constraints.*;
@@ -54,6 +58,12 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     }
 
     /**
+     * 用户是否实现了自定义的解密类
+     */
+    @Autowired(required = false)
+    private MkDecodeInterface mkDecode;
+
+    /**
      * 目前支持的对称加密算法
      */
     private static final List<String> symmetryList = CollUtil.toList("SM4", "AES", "DES", "DESede");
@@ -68,76 +78,37 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
      */
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasMethodAnnotation(ParamsDecode.class) || parameter.hasParameterAnnotation(ParamsDecode.class);
+        return config.getGlobalDecode() ? !parameter.hasMethodAnnotation(IgnoreDecode.class) :
+                parameter.hasMethodAnnotation(ParamsDecode.class) || parameter.hasParameterAnnotation(ParamsDecode.class);
     }
 
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer modelAndViewContainer,
-                                  NativeWebRequest webRequest, WebDataBinderFactory webDataBinderFactory) throws IOException, InstantiationException, IllegalAccessException {
+                                  NativeWebRequest webRequest, WebDataBinderFactory webDataBinderFactory) throws IOException {
 
         // 如果注解中指定了解密方式，重新读取配置文件中，获取指定配置
         ParamsDecode paramsDecode = parameter.getMethodAnnotation(ParamsDecode.class);
-        if (StrUtil.isNotBlank(paramsDecode.value())) {
+        if (paramsDecode != null && StrUtil.isNotBlank(paramsDecode.value())) {
             this.resetConfig(paramsDecode.value());
         }
 
-        // 获取解密前的加密JSON中的key，如果配置了就使用json键值对解析，没有配置就是单独的加密字符串
-        if (StrUtil.isNotBlank(config.getJsonKey())) {
-            jsonKey = config.getJsonKey();
-        }
+        // 参数解密
+        String afterParam = this.decode(webRequest);
 
-        if (StrUtil.isBlank(config.getEncode())) {
-            throw new KeyException(ExEnum.E01);
-        }
+        // 校验参数并返回
+        return this.verify(parameter, afterParam);
+    }
 
-        SymmetricCrypto symmetric = null;
-        AbstractAsymmetricCrypto<?> asymmetric = null;
-        // 对称加密
-        if (symmetryList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
-            symmetric = this.getSymmetry();
-        }
-        // 非对称加密
-        else if (asymmetricList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
-            asymmetric = this.getAsymmetry();
-        } else {
-            throw new KeyException(ExEnum.E03);
-        }
-
-        // 获取post请求的json字符串
-        String postStr = this.getPostStr(webRequest);
-
+    /**
+     * 参数校验
+     *
+     * @param parameter  接口参数对象
+     * @param afterParam 解密后的参数
+     * @return 校验完之后转换成接口所需类型的对象
+     */
+    private Object verify(MethodParameter parameter, String afterParam) {
         // 接口参数的字节码对象
         Class<?> parameterType = parameter.getParameterType();
-
-        //获取加密的请求数据并解密
-        Object beforParam;
-        String afterParam = null;
-        if (StrUtil.isNotBlank(config.getJsonKey())) {
-            // 配置了json-key，但参数为text加密字符串
-            if (!JSONUtil.isJson(postStr)) {
-                throw new KeyException(ExEnum.E07);
-            }
-            beforParam = JSONUtil.parseObj(postStr, true).get(jsonKey);
-        } else {
-            // 参数为json格式，配置文件未配置json-key
-            if (JSONUtil.isJson(postStr)) {
-                throw new KeyException(ExEnum.E06);
-            }
-            beforParam = postStr;
-        }
-
-        if (beforParam != null) {
-            if (StrUtil.isBlank(beforParam.toString())) {
-                afterParam = "";
-            } else {
-                if (symmetric != null) {
-                    afterParam = symmetric.decryptStr(beforParam.toString(), CharsetUtil.CHARSET_UTF_8);
-                } else if (asymmetric != null) {
-                    afterParam = asymmetric.decryptStr(beforParam.toString(), KeyType.PrivateKey);
-                }
-            }
-        }
-
         // 如果是自定义的实体类参数，把请求参数封装
         if (parameterType.getClassLoader() != null) {
 
@@ -166,7 +137,7 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
 
             return jsonArray.toList(Object.class);
 
-            // 如果是map
+            // 如果是map todo 目前无法处理map参数
         } else if (Map.class.isAssignableFrom(parameterType)) {
 
             //转成对象数组
@@ -174,9 +145,78 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
 
             return Convert.toMap(String.class, Object.class, jsonObject);
         }
-
         return null;
+    }
 
+    /**
+     * 参数解密
+     *
+     * @return 解密后内容
+     */
+    private String decode(NativeWebRequest webRequest) throws IOException {
+
+        // 获取解密前的加密JSON中的key，如果配置了就使用json键值对解析，没有配置就是单独的加密字符串
+        if (StrUtil.isNotBlank(config.getJsonKey())) {
+            jsonKey = config.getJsonKey();
+        }
+
+        SymmetricCrypto symmetric = null;
+        AbstractAsymmetricCrypto<?> asymmetric = null;
+        if (mkDecode != null) {
+
+        } else {
+            if (StrUtil.isBlank(config.getEncode())) {
+                throw new KeyException(ExEnum.E01);
+            }
+            // 对称加密
+            if (symmetryList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
+                symmetric = this.getSymmetry();
+            }
+            // 非对称加密
+            else if (asymmetricList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
+                asymmetric = this.getAsymmetry();
+            } else {
+                throw new KeyException(ExEnum.E03);
+            }
+        }
+
+        // 获取post请求的json字符串
+        String postStr = this.getPostStr(webRequest);
+
+        //获取加密的请求数据并解密
+        Object beforeParam;
+        String afterParam = null;
+        if (StrUtil.isNotBlank(config.getJsonKey())) {
+            // 配置了json-key，但参数为text加密字符串
+            if (!JSONUtil.isJson(postStr)) {
+                throw new KeyException(ExEnum.E07);
+            }
+            beforeParam = JSONUtil.parseObj(postStr, true).get(jsonKey);
+        } else {
+            // 参数为json格式，配置文件未配置json-key
+            if (JSONUtil.isJson(postStr)) {
+                throw new KeyException(ExEnum.E06);
+            }
+            beforeParam = postStr;
+        }
+
+        if (beforeParam != null) {
+            if (StrUtil.isBlank(beforeParam.toString())) {
+                afterParam = "";
+            } else {
+                // 优先使用用户自定义解密类解密
+                if (mkDecode != null) {
+                    afterParam = mkDecode.decode(beforeParam.toString());
+                } else {
+                    if (symmetric != null) {
+                        afterParam = symmetric.decryptStr(beforeParam.toString(), CharsetUtil.CHARSET_UTF_8);
+                    } else if (asymmetric != null) {
+                        afterParam = asymmetric.decryptStr(beforeParam.toString(), KeyType.PrivateKey);
+                    }
+                }
+            }
+        }
+        return afterParam;
     }
 
     private AbstractAsymmetricCrypto<?> getAsymmetry() {
@@ -203,7 +243,7 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
      *
      * @param value 注解中指定的加密方式
      */
-    private void resetConfig(String value) {
+    private synchronized void resetConfig(String value) {
 
     }
 

@@ -52,4 +52,10 @@ public class ParamsDecodeConfig {
      * 非对称加密使用的私钥
      */
     private String privateKey;
+
+    /**
+     * 是否开启全局解密 默认false
+     */
+    private Boolean globalDecode = false;
+
 }
