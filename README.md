@@ -22,7 +22,7 @@
 ## 安装教程
 
 ### 1.  依赖
-**当前最新版本为1.1**
+**当前最新版本为1.2**
 ```
         <dependency>
             <groupId>io.github.vhukze</groupId>
