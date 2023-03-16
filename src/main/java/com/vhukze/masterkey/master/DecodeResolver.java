@@ -19,9 +19,11 @@ import com.vhukze.masterkey.anno.ParamsDecode;
 import com.vhukze.masterkey.entity.ParamsDecodeConfig;
 import com.vhukze.masterkey.entity.ExEnum;
 import com.vhukze.masterkey.exception.KeyException;
+import com.vhukze.masterkey.utils.ConfigUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -45,11 +47,6 @@ import java.util.*;
  */
 @Log4j2
 public class DecodeResolver implements HandlerMethodArgumentResolver {
-
-    /**
-     * 解密前的加密JSON中的key
-     */
-    private static String jsonKey;
 
     private ParamsDecodeConfig config;
 
@@ -86,14 +83,17 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer modelAndViewContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory webDataBinderFactory) throws IOException {
 
-        // 如果注解中指定了解密方式，重新读取配置文件中，获取指定配置
-        ParamsDecode paramsDecode = parameter.getMethodAnnotation(ParamsDecode.class);
-        if (paramsDecode != null && StrUtil.isNotBlank(paramsDecode.value())) {
-            this.resetConfig(paramsDecode.value());
-        }
+        String afterParam;
+        synchronized (this) {
+            // 如果注解中指定了解密方式，重新读取配置文件中，获取指定配置
+            ParamsDecode paramsDecode = parameter.getMethodAnnotation(ParamsDecode.class);
+            if (paramsDecode != null && StrUtil.isNotBlank(paramsDecode.value())) {
+                this.resetConfig(paramsDecode.value());
+            }
 
-        // 参数解密
-        String afterParam = this.decode(webRequest);
+            // 参数解密
+            afterParam = this.decode(webRequest);
+        }
 
         // 校验参数并返回
         return this.verify(parameter, afterParam);
@@ -121,7 +121,15 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
             //json转对象  // 这里的return就会把转化过的参数赋给控制器的方法参数
             return JSONUtil.toBean(afterParam, parameterType);
 
-            // 如果是非集合类(基础类型包装类)
+            // 如果是map
+        } else if (Map.class.isAssignableFrom(parameterType)) {
+
+            //转成对象数组
+            JSONObject jsonObject = JSONUtil.parseObj(afterParam);
+
+            return Convert.toMap(String.class, Object.class, jsonObject);
+
+            // 如果是非集合类(基础类型或其包装类)
         } else if (!Iterable.class.isAssignableFrom(parameterType)) {
 
             this.verifyOneField(parameter, afterParam);
@@ -136,14 +144,6 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
             this.verifyCollField(parameter, jsonArray);
 
             return jsonArray.toList(Object.class);
-
-            // 如果是map todo 目前无法处理map参数
-        } else if (Map.class.isAssignableFrom(parameterType)) {
-
-            //转成对象数组
-            JSONObject jsonObject = JSONUtil.parseObj(afterParam);
-
-            return Convert.toMap(String.class, Object.class, jsonObject);
         }
         return null;
     }
@@ -155,16 +155,9 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
      */
     private String decode(NativeWebRequest webRequest) throws IOException {
 
-        // 获取解密前的加密JSON中的key，如果配置了就使用json键值对解析，没有配置就是单独的加密字符串
-        if (StrUtil.isNotBlank(config.getJsonKey())) {
-            jsonKey = config.getJsonKey();
-        }
-
         SymmetricCrypto symmetric = null;
         AbstractAsymmetricCrypto<?> asymmetric = null;
-        if (mkDecode != null) {
-
-        } else {
+        if (mkDecode == null) {
             if (StrUtil.isBlank(config.getEncode())) {
                 throw new KeyException(ExEnum.E01);
             }
@@ -191,7 +184,7 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
             if (!JSONUtil.isJson(postStr)) {
                 throw new KeyException(ExEnum.E07);
             }
-            beforeParam = JSONUtil.parseObj(postStr, true).get(jsonKey);
+            beforeParam = JSONUtil.parseObj(postStr, true).get(config.getJsonKey());
         } else {
             // 参数为json格式，配置文件未配置json-key
             if (JSONUtil.isJson(postStr)) {
@@ -239,12 +232,22 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     }
 
     /**
-     * 重新获取指定的配置 TODO
+     * 重新获取指定的配置
      *
      * @param value 注解中指定的加密方式
      */
-    private synchronized void resetConfig(String value) {
+    private void resetConfig(String value) {
+        Properties appYml = ConfigUtil.getAppYml();
+        String prefix = "master-key.";
 
+        config.setJsonKey(appYml.getProperty(prefix + value + ".json-key"));
+        config.setEncode(appYml.getProperty(prefix + value + ".encode"));
+        config.setMode(appYml.getProperty(prefix + value + ".mode"));
+        config.setPadding(appYml.getProperty(prefix + value + ".padding"));
+        config.setSalt(appYml.getProperty(prefix + value + ".salt"));
+        config.setKey(appYml.getProperty(prefix + value + ".key"));
+        config.setPublicKey(appYml.getProperty(prefix + value + ".public-key"));
+        config.setPrivateKey(appYml.getProperty(prefix + value + ".private-key"));
     }
 
     /**
