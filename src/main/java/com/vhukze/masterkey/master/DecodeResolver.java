@@ -87,12 +87,13 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
         synchronized (this) {
             // 如果注解中指定了解密方式，重新读取配置文件中，获取指定配置
             ParamsDecode paramsDecode = parameter.getMethodAnnotation(ParamsDecode.class);
-            if (paramsDecode != null && StrUtil.isNotBlank(paramsDecode.value())) {
+            boolean isCover = paramsDecode != null && StrUtil.isNotBlank(paramsDecode.value());
+            if (isCover) {
                 this.resetConfig(paramsDecode.value());
             }
 
             // 参数解密
-            afterParam = this.decode(webRequest);
+            afterParam = this.decode(webRequest, isCover);
         }
 
         // 校验参数并返回
@@ -151,27 +152,10 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
     /**
      * 参数解密
      *
+     * @param isCover 当前接口是否指定了解密方式
      * @return 解密后内容
      */
-    private String decode(NativeWebRequest webRequest) throws IOException {
-
-        SymmetricCrypto symmetric = null;
-        AbstractAsymmetricCrypto<?> asymmetric = null;
-        if (mkDecode == null) {
-            if (StrUtil.isBlank(config.getEncode())) {
-                throw new KeyException(ExEnum.E01);
-            }
-            // 对称加密
-            if (symmetryList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
-                symmetric = this.getSymmetry();
-            }
-            // 非对称加密
-            else if (asymmetricList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
-                asymmetric = this.getAsymmetry();
-            } else {
-                throw new KeyException(ExEnum.E03);
-            }
-        }
+    private String decode(NativeWebRequest webRequest, boolean isCover) throws IOException {
 
         // 获取post请求的json字符串
         String postStr = this.getPostStr(webRequest);
@@ -197,15 +181,26 @@ public class DecodeResolver implements HandlerMethodArgumentResolver {
             if (StrUtil.isBlank(beforeParam.toString())) {
                 afterParam = "";
             } else {
-                // 优先使用用户自定义解密类解密
-                if (mkDecode != null) {
-                    afterParam = mkDecode.decode(beforeParam.toString());
-                } else {
-                    if (symmetric != null) {
-                        afterParam = symmetric.decryptStr(beforeParam.toString(), CharsetUtil.CHARSET_UTF_8);
-                    } else if (asymmetric != null) {
-                        afterParam = asymmetric.decryptStr(beforeParam.toString(), KeyType.PrivateKey);
+                // 优先使用接口注解中指定的解密方式
+                if (isCover || mkDecode == null) {
+                    if (StrUtil.isBlank(config.getEncode())) {
+                        throw new KeyException(ExEnum.E01);
                     }
+                    // 对称加密
+                    if (symmetryList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
+                        afterParam = Objects.requireNonNull(this.getSymmetry())
+                                .decryptStr(beforeParam.toString(), CharsetUtil.CHARSET_UTF_8);
+                    }
+                    // 非对称加密
+                    else if (asymmetricList.stream().anyMatch(i -> i.equalsIgnoreCase(config.getEncode()))) {
+                        afterParam = Objects.requireNonNull(this.getAsymmetry())
+                                .decryptStr(beforeParam.toString(), KeyType.PrivateKey);
+                    } else {
+                        throw new KeyException(ExEnum.E03);
+                    }
+                } else {
+                    // 使用用户自定义解密类
+                    afterParam = mkDecode.decode(beforeParam.toString());
                 }
             }
         }
